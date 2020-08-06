@@ -23,12 +23,12 @@ from .batch_norm import BatchNormalization
 from .utils import broadcast_iou
 
 yolo_max_boxes = 100
-yolo_iou_threshold = 0.5
-yolo_score_threshold = 0.5
-# customize your model through the following parameters
-flags.DEFINE_integer('yolo_max_boxes', 10, 'maximum number of detections at one time')
-flags.DEFINE_float('yolo_iou_threshold', 0.5, 'iou threshold')
-flags.DEFINE_float('yolo_score_threshold', 0.5, 'score threshold')
+yolo_iou_threshold = 0.6
+yolo_score_threshold = 0.6
+# customize model through the following parameters
+flags.DEFINE_integer('yolo_max_boxes', 100, 'maximum number of detections at one time')
+flags.DEFINE_float('yolo_iou_threshold', 0.01, 'iou threshold')
+flags.DEFINE_float('yolo_score_threshold', 0.01, 'score threshold')
 
 yolo_anchors = np.array([(10, 13), (16, 30), (33, 23), (30, 61), (62, 45),
                          (59, 119), (116, 90), (156, 198), (373, 326)],
@@ -45,7 +45,7 @@ def DarknetConv(x, filters, size, strides=1, batch_norm=True):
     if strides == 1:
         padding = 'same'
     else:
-        x = ZeroPadding2D(((1, 0), (1, 0)))(x)  # top left half-padding
+        x = ZeroPadding2D(((1, 0), (1, 0)))(x)  #top left half-padding
         padding = 'valid'
     x = Conv2D(filters=filters, kernel_size=size,
                strides=strides, padding=padding,
@@ -75,8 +75,8 @@ def Darknet(name=None):
     x = inputs = Input([None, None, 3])
     x = DarknetConv(x, 32, 3)
     x = DarknetBlock(x, 64, 1)
-    x = DarknetBlock(x, 128, 2)  # skip connection
-    x = x_36 = DarknetBlock(x, 256, 8)  # skip connection
+    x = DarknetBlock(x, 128, 2)  
+    x = x_36 = DarknetBlock(x, 256, 8)  
     x = x_61 = DarknetBlock(x, 512, 8)
     x = DarknetBlock(x, 1024, 4)
     return tf.keras.Model(inputs, (x_36, x_61, x), name=name)
@@ -92,7 +92,7 @@ def DarknetTiny(name=None):
     x = MaxPool2D(2, 2, 'same')(x)
     x = DarknetConv(x, 128, 3)
     x = MaxPool2D(2, 2, 'same')(x)
-    x = x_8 = DarknetConv(x, 256, 3)  # skip connection
+    x = x_8 = DarknetConv(x, 256, 3)  
     x = MaxPool2D(2, 2, 'same')(x)
     x = DarknetConv(x, 512, 3)
     x = MaxPool2D(2, 1, 'same')(x)
